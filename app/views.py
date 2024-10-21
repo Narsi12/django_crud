@@ -14,6 +14,7 @@ def infouser(request):
     logger.info('Get the all users !! ')
     return Response("Hello")
 
+#post api
 @api_view(['POST'])
 def create(request):
     logger.info('create endpoint hit with data: %s', request.data)
