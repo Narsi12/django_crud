@@ -20,4 +20,4 @@ COPY . /app/
 EXPOSE 8000
  
 # Run the Django development server by default
-CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]ssss
+CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
