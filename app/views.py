@@ -53,6 +53,7 @@ def update_user(request, pk):
         logger.error('Error in update_user for ID %s: %s', pk, serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# delete method
 @api_view(['DELETE'])
 def delete_user(request, pk):
     logger.info('delete_user endpoint hit for ID: %s', pk)
