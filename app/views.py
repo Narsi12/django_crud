@@ -8,6 +8,7 @@ from rest_framework import status
 # Set up logging
 logger = logging.getLogger(__name__)
 
+#sample api
 @api_view(['GET'])
 def infouser(request):
     logger.info('Get the all users !! ')
