@@ -1,39 +1,36 @@
 name: Build and Push Docker Image to AWS ECR
-
+ 
 on:
   push:
     branches:
       - main  # Trigger action on push to the main branch
-
+ 
 jobs:
   build:
     runs-on: ubuntu-latest
-
+ 
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
-
+ 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-region: ${{ secrets.AWS_REGION }}
-        role-to-assume: arn:aws:iam::your-aws-account-id:role/your-ecr-role
-
+ 
     - name: Log in to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
       with:
-        registries: ${{ secrets.AWS_ECR_REGISTRY }}
-
+        region: ${{ secrets.AWS_REGION }}
+ 
     - name: Extract repository URI
       id: ecr
-      run: echo "ECR_URI=$(aws ecr describe-repositories --repository-names ${{ secrets.AWS_ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text)" >> $GITHUB_ENV
-
+      run: echo "::set-output name=ecr_uri::$(aws ecr describe-repositories --repository-names ${{ secrets.AWS_ECR_REPOSITORY }} --region ${{ secrets.AWS_REGION }} --query 'repositories[0].repositoryUri' --output text)"
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     - name: Build and Tag Docker Image
-      run: docker build -t ${{ env.ECR_URI }}:latest .
-
+      run: docker build -t ${{ steps.ecr.outputs.ecr_uri }}:latest .
     - name: Push Docker Image to ECR
-      run: docker push ${{ env.ECR_URI }}:latest
+      run: docker push ${{ steps.ecr.outputs.ecr_uri }}:latest
+
+has context menu
