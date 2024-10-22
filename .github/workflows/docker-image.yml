@@ -20,23 +20,20 @@ jobs:
       uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-region: ${{ secrets.AWS_REGION }}
+        role-to-assume: arn:aws:iam::your-aws-account-id:role/your-ecr-role
 
     - name: Log in to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
       with:
-        registries: ${{ secrets.AWS_ECR_REGISTRY }}  # Use the registry URL instead
+        registries: ${{ secrets.AWS_ECR_REGISTRY }}
 
     - name: Extract repository URI
       id: ecr
-      run: echo "::set-output name=ecr_uri::$(aws ecr describe-repositories --repository-names ${{ secrets.AWS_ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text)"
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: ${{ secrets.AWS_REGION }}  # Set region in the environment variables
+      run: echo "ECR_URI=$(aws ecr describe-repositories --repository-names ${{ secrets.AWS_ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text)" >> $GITHUB_ENV
 
     - name: Build and Tag Docker Image
-      run: docker build -t ${{ steps.ecr.outputs.ecr_uri }}:latest .
+      run: docker build -t ${{ env.ECR_URI }}:latest .
 
     - name: Push Docker Image to ECR
-      run: docker push ${{ steps.ecr.outputs.ecr_uri }}:latest
+      run: docker push ${{ env.ECR_URI }}:latest
