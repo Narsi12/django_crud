@@ -77,7 +77,7 @@ jobs:
     - name: Update ECS Service
       run: |
         aws ecs update-service \
-          --cluster my-ecs-cluster \
+          --cluster TestCluster \
           --service my-ecs-service \
           --force-new-deployment
       env:
