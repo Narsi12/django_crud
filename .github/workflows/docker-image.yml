@@ -31,17 +31,13 @@ jobs:
 
     - name: Extract repository URI
       id: ecr
-      run: echo "::set-output name=ecr_uri::$(aws ecr describe-repositories --repository-names ${{ secrets.AWS_ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text)"
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: ${{ secrets.AWS_REGION }}
+      run: echo "ECR_URI=$(aws ecr describe-repositories --repository-names ${{ secrets.AWS_ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text)" >> $GITHUB_ENV
 
     - name: Build and Tag Docker Image
-      run: docker build -t ${{ steps.ecr.outputs.ecr_uri }}:latest .
+      run: docker build -t ${{ env.ECR_URI }}:latest .
 
     - name: Push Docker Image to ECR
-      run: docker push ${{ steps.ecr.outputs.ecr_uri }}:latest
+      run: docker push ${{ env.ECR_URI }}:latest
 
     - name: Notify on Success
       if: success()
