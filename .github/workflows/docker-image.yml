@@ -1,4 +1,4 @@
-name: Build, Push, and Deploy Docker Image to AWS ECR and ECS
+name: Build and Push Docker Image to AWS ECR
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build_and_deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -43,42 +43,10 @@ jobs:
     - name: Push Docker Image to ECR
       run: docker push ${{ steps.ecr.outputs.ecr_uri }}:latest
 
-    - name: Register Task Definition
-      run: |
-        aws ecs register-task-definition \
-          --family my-ecs-task \
-          --network-mode awsvpc \
-          --requires-compatibilities FARGATE \
-          --cpu 256 \
-          --memory 512 \
-          --execution-role-arn arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ecsTaskExecutionRole \
-          --container-definitions '[{
-              "name": "my-container",
-              "image": "'${{ steps.ecr.outputs.ecr_uri }}:latest'",
-              "cpu": 256,
-              "memory": 512,
-              "essential": true,
-              "portMappings": [
-                {
-                  "containerPort": 80,
-                  "hostPort": 80
-                }
-              ],
-              "logConfiguration": {
-                "logDriver": "awslogs",
-                "options": {
-                  "awslogs-group": "/ecs/my-ecs-task",
-                  "awslogs-region": "${{ secrets.AWS_REGION }}",
-                  "awslogs-stream-prefix": "ecs"
-                }
-              }
-            }]'
+    - name: Notify on Success
+      if: success()
+      run: echo "Docker image pushed successfully to ECR."
 
-    - name: Update ECS Service
-      run: |
-        aws ecs update-service \
-          --cluster TestCluster \
-          --service my-ecs-service \
-          --force-new-deployment
-      env:
-        AWS_REGION: ${{ secrets.AWS_REGION }}
+    - name: Notify on Failure
+      if: failure()
+      run: echo "Error occurred during the workflow."
